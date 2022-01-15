@@ -44,7 +44,7 @@
 ### 按<kbd>E</kbd>可顯示英文字幕，藉由字幕學習英語 
 <img src="introduce_img/6.JPG" width="600">
 
-## 資服競賽
+## 全國大專校院資訊應用服務創新競賽第一名
 ### 之後為了比賽結合機器學習新增了一些功能
 <img src="introduce_img/7.png" width="800">
 介紹影片: https://www.youtube.com/watch?v=Lz1-BlqCmuk  
