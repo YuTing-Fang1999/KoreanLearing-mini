@@ -1,6 +1,5 @@
 # KoreanLearing-mini
-作品架在 https://flask-koreanlerning.herokuapp.com  
-因為是免費資源所以剛開始連會花一點時間(大約10秒)
+作品架在 https://flask-koreanlerning.herokuapp.com
 
 ## 此作品是基於我個人興趣做的，所有版權皆不屬於我，請勿拿來用作商業用途
 
@@ -15,10 +14,9 @@
 ### 此系統串接韓國直播平台vlive，可自由搜尋自己喜歡的團體  
 <img src="introduce_img/1.png" width="800">
 
-### 可藉由即時查詞邊看影片邊學單字  
-影片字幕來源:vlive  
-單字來源: naver字典  
-查詞功能是經由滑鼠選取觸發，手機無法使用  
+### 影片字幕從vlive爬取，可藉由即時查詞邊看影片邊學單字  
+### 單字來源: naver字典  
+### 查詞功能是經由滑鼠選取觸發，手機無法使用  
 <img src="introduce_img/2.JPG" width="600">
 
 
@@ -45,13 +43,13 @@
 ### 按<kbd>E</kbd>可顯示英文字幕，藉由字幕學習英語 
 <img src="introduce_img/6.JPG" width="600">
 
-## 全國大專院校資訊應用服務創新競賽第一名
+## 資服競賽
 ### 之後為了比賽結合機器學習新增了一些功能
 <img src="introduce_img/7.png" width="800">
 介紹影片: https://www.youtube.com/watch?v=Lz1-BlqCmuk  
 
 
-為了使用免費版的heroku(容量考量)且方便管理，目前架在heroku上面的是無AI版本
+為了使用免費版的heroku(容量考量)且方便管理，目前架在上面的是無AI版本
 
 
 
