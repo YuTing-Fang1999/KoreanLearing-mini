@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>{{data['subject']}}</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="/static/css/header.css">
+    <link rel="stylesheet" type="text/css" href="/static/css/dialog.css">
+</head>
+<script language="javascript">
+    console.log("{{data['crossorigin']}}");
+
+
+    function delay_load() {
+        if ("{{data['crossorigin']}}" == "1") {
+            $('#video').prepend(
+                `<video controls controlslist="nodownload" crossorigin="anonymous">
+                    <track onload="load_video_subtitle(0)" default kind="subtitles" src="{{data['ko_KR']}}" label="KR">
+                    <track onload="load_video_subtitle(1)" default kind="subtitles" src="{{data['zh_TW']}}" label="TW">
+                    <track onload="load_video_subtitle(2)" default kind="subtitles" src="{{data['en_US']}}" label="US">
+                    <source src="{{data['video_url']}}" type="video/mp4">
+                        Your browser does not support the video tag.
+                </video>`
+            )
+        } else {
+            $('#video').prepend(
+                `<video controls controlslist="nodownload">
+                    <track onload="load_video_subtitle(0)" default kind="subtitles" src="{{data['ko_KR']}}" label="KR">
+                    <track onload="load_video_subtitle(1)" default kind="subtitles" src="{{data['zh_TW']}}" label="TW">
+                    <track kind="subtitles" src="{{data['en_US']}}" label="US">
+                    <source src="{{data['video_url']}}" type="video/mp4">
+                        Your browser does not support the video tag.
+                </video>`
+            )
+        }
+        if ("{{data['favorite']}}" == 1) {
+            $('#favorite img').attr('src', "{{url_for('static', filename='img/star.png')}}");
+            fav = true;
+        } else {
+            fav = false;
+        }
+        setTimeout(load_event, 1000);
+        videoElement = document.querySelector("video");
+        textTrackList = videoElement.textTracks; // one for each track element
+        textTrackList[0].mode = "hidden";
+        textTrackList[1].mode = "hidden";
+    }
+
+    function load_video_subtitle(index) {
+        videoElement = document.querySelector("video");
+        textTrackList = videoElement.textTracks; // one for each track element
+
+        switch (index) {
+            case 0:
+                // console.log('en kr btn');
+                document.getElementById("KRbtn").disabled = false;
+
+                KRtrack = textTrackList[0];
+                if (KRtrack.cues.length != 0) {
+                    id = -1;
+                    startTime = KRtrack.cues[0].startTime;
+                    KRtrack.addEventListener('cuechange', function() {
+                        var cues = KRtrack.activeCues;
+                        if (cues.length == 1) {
+                            $('#KR').text(cues[0].text);
+                            id = KRtrack.activeCues[0].id - 1;
+                            // console.log(id)
+                        } else {
+                            $('#KR').text(""); //當沒字幕時變空白
+                        }
+                    });
+
+                    $('#KRbtn').removeClass("btn_off");
+                    $('#KRbtn').addClass("btn_on");
+                }
+                KRtrack.mode = "hidden";
+
+                break;
+            case 1:
+                // console.log('en tw btn');
+                document.getElementById("TWbtn").disabled = false;
+
+                TWtrack = textTrackList[1];
+                if (TWtrack.cues.length != 0) {
+                    TWtrack.addEventListener('cuechange', function() {
+                        var cues = TWtrack.activeCues; // array of current cues
+                        if (cues.length == 1) {
+                            $('#TW').text(cues[0].text)
+                        } else {
+                            $('#TW').text(""); //當沒字幕時變空白
+                        }
+                    });
+                    $('#TWbtn').removeClass("btn_off");
+                    $('#TWbtn').addClass("btn_on");
+                }
+                TWtrack.mode = "hidden";
+                break;
+
+            case 2:
+                // console.log('en tw btn');
+                // document.getElementById("TWbtn").disabled = false;
+
+                ENtrack = textTrackList[2];
+                if (ENtrack.cues.length != 0) {
+                    ENtrack.addEventListener('cuechange', function() {
+                        var cues = ENtrack.activeCues; // array of current cues
+                        if (cues.length == 1) {
+                            $('#EN').text(cues[0].text)
+                        } else {
+                            $('#EN').text(""); //當沒字幕時變空白
+                        }
+                    });
+                }
+                ENtrack.mode = "disabled";
+                break;
+
+        }
+    }
+
+    function load_event() {
+        $(document).keydown(function(event) {
+            if ($("#search_text").is(":focus")) return;
+
+            var key = event.code;
+            if (key == 'ArrowUp' || key == 'ArrowDown' || key == 'Space')
+                event.preventDefault();
+        });
+        addEventListener("keydown", function(evt) {
+            videoElement.blur();
+            document.getElementById('myRange').blur();
+            if ($("#search_text").is(":focus")) return;
+
+            $(".word_block").hide();
+            var key = evt.code;
+            switch (key) {
+                case 'Space':
+                    if (videoElement.paused) {
+                        videoElement.play();
+                    } else {
+                        videoElement.pause();
+                    }
+                    break;
+                case 'KeyR':
+                    control_cue('re');
+                    break;
+                case 'ArrowLeft':
+                    control_cue('pre');
+                    break;
+                case 'ArrowRight':
+                    control_cue('next');
+                    break;
+                case 'ArrowUp':
+                    var volume = parseInt(videoElement.volume * 100);
+                    volume += 10;
+                    if (volume > 100) volume = 100;
+                    $('#volumeHint_text').text(volume + '%');
+                    videoElement.volume = volume / 100;
+                    $('.video_volumeHint').css('display', 'flex');
+                    setTimeout(function() {
+                        $('.video_volumeHint').css('display', 'none');
+                    }, 1000);
+                    break;
+                case 'ArrowDown':
+                    var volume = parseInt(videoElement.volume * 100);
+                    volume -= 10;
+                    if (volume < 0) volume = 0;
+                    $('#volumeHint_text').text(volume + '%');
+                    videoElement.volume = volume / 100;
+                    $('.video_volumeHint').css('display', 'flex');
+                    setTimeout(function() {
+                        $('.video_volumeHint').css('display', 'none');
+                    }, 1000);
+                    break;
+                case 'KeyE':
+                    console.log(ENtrack.mode);
+
+                    if (ENtrack.mode == 'disabled') {
+                        ENtrack.mode = "hidden";
+                    } else {
+                        ENtrack.mode = "disabled";
+                        $('#EN').text('')
+                            // $('#EN').text('aaa');
+                    }
+
+                    break;
+                case 'KeyZ':
+                    subtitle_setting('TW');
+                    break;
+                case 'KeyK':
+                    subtitle_setting('KR');
+                    break;
+            }
+        });
+
+        video_speed();
+        $('#speed_btn').click(function() {
+            if ($('#speed').css('display') == 'inline-block') {
+                $('#speed').css('display', 'none');
+            } else {
+                $('#speed').css('display', 'inline-block');
+            }
+        });
+
+        $('#favorite').click(function() {
+            // $('#favorite').addClass('btn_on')
+            if (fav) { //顯示取消收藏框
+                $('.dialog').css('display', 'block');
+                $('.dialog_bg').css('display', 'block');
+            } else { //新增收藏
+                $.ajax({
+                    url: '/add_to_my_video',
+                    type: 'POST',
+                    data: {
+                        "V_id": "{{data['V_id']}}",
+                        "subject": "{{data['subject']}}",
+                        "img_url": "{{data['img_url']}}"
+                    },
+                    success: function() {
+                        $('#favorite img').attr('src', '/static/img/star.png');
+                        fav = true;
+                    },
+                    error: function() {
+                        alert('error');
+                    }
+
+                });
+            }
+        });
+
+        $('#setting_icon').click(function() {
+            if ($('#setting_block').css('display') == 'none') {
+                $('#setting_block').css('display', 'block');
+                $('#setting_icon').css('background-image', 'url(https://www.flaticon.com/svg/static/icons/svg/653/653268.svg)');
+
+            } else {
+                $('#setting_block').css('display', 'none');
+                $('#setting_icon').css('background-image', 'url(https://www.flaticon.com/svg/static/icons/svg/3524/3524623.svg)');
+            }
+        });
+        $('#speed').click(function() {
+            console.log('blur');
+            document.getElementById('myRange').blur();
+        });
+
+        $('#del_fav_btn').click(function() {
+            $.ajax({
+                url: '/delete_my_video',
+                type: 'POST',
+                data: {
+                    "V_id": "{{data['V_id']}}"
+                },
+                success: function(res) {
+                    // console.log(res)
+                    $('#favorite img').attr('src', '/static/img/unstar.png');
+                    fav = false;
+                },
+                error: function(res) {
+                    alert(res)
+                }
+            });
+        });
+    }
+
+    function subtitle_setting(lang) {
+        // console.log(myObj);
+        $('#' + lang).text('')
+        var videoElement = document.querySelector("video");
+        var textTrackList = videoElement.textTracks; // one for each track element
+        if (lang == 'KR') {
+            textTrack = textTrackList[0]
+            var sub = ".kr_sub";
+            myObj = $('#KRbtn');
+        }
+        if (lang == 'TW') {
+            textTrack = textTrackList[1]
+            var sub = ".tw_sub";
+            myObj = $('#TWbtn');
+
+        }
+
+
+        if ($(myObj).hasClass("btn_on")) {
+            $(myObj).removeClass("btn_on");
+            $(myObj).addClass("btn_off");
+            textTrack.mode = "disabled"
+            $(sub).hide();
+        } else {
+            $(myObj).removeClass("btn_off");
+            $(myObj).addClass("btn_on");
+            textTrack.mode = "hidden"
+            $(sub).show();
+        }
+    }
+
+    function getSelectTxt(e) {
+        if (window.getSelection) {
+            txt = "" + window.getSelection();
+            // event.preventDefault();
+            // txt= "" + window.getSelection().toString();
+        } else if (document.selection && document.selection.createRange) {
+            txt = document.selection.createRange().text;
+        }
+        txt = txt.trim();
+        if (txt == "") { //当选中内容为空时，阻止事件发生
+            window.event ? window.event.cancelBubble = true : e.stopPropagation();
+        } else {
+            console.log(txt);
+            $(".word_block").empty();
+            $(".word_block").append('<span onclick="close_wb()" class="close fat"></span>');
+            $.ajax({
+                // url:'https://tip.dict.naver.com/datajsonp/ko/zh/pc/arken?prCode=dict&entryName='+txt,
+                url: '/naver_api',
+                type: 'POST',
+                dataType: "json",
+
+                // dataType: "jsonp",//跨域傳送
+                data: {
+                    'query': txt
+                },
+                success: function(res) {
+                    var result = res['data']['result']
+                    if (result != null) {
+                        var items = result['items']
+                            // console.log(result)
+                        for (item in items) {
+                            item = items[item];
+                            // console.log(item);
+                            $(".word_block").append(
+                                '<div class="word"></div>'
+                            );
+                            $(".word").last().append(
+                                `<a target="_blank" href="${item['destinationLink']}">
+                                    <div class="entryName">${item['entryName']}<span>${item['chinaWord']}</span></div>
+                                </a>`
+                            );
+                            if (item['pronounceList'][0]) {
+                                if (item['pronounceList'][0]['sign']) {
+                                    $(".word").last().append(
+                                        `<span class="pronounce">
+                                        [${item['pronounceList'][0]['sign']}]
+                                    </span>`
+                                    );
+                                }
+                                if (item['pronounceList'][0]['pronunceUrl']) {
+                                    $(".word").last().append(`<button class="u_btn_pronun" onclick="play(this,'${item['pronounceList'][0]['pronunceUrl']}')">`);
+                                }
+                            }
+                            $(".word").last().append('<ol></ol>')
+                            meaningList = item['partOfSpeechList'][0]['meaningList']
+                            for (i in meaningList) {
+                                $('ol').last().append(`<li>${meaningList[i]['desciption']}</li>`)
+                            }
+                        }
+                        $('.word_block').append(
+                            `<div class="more_word">
+                                <a target="_blank" href="${result['moreDetailUrl']}">
+                                    察看所有結果 >
+                                </a>
+                            </div>`
+                        )
+
+                    } else {
+                        console.log('null')
+                        $(".word_block").append('<div class="word">null</div>');
+                    }
+                    $(".word_block").show();
+                },
+                error: function(res) {
+                    console.log("error")
+                }
+            })
+        }
+
+    }
+
+    //滑鼠點擊其他地方時隱藏
+    $(document).mousedown(function(e) {
+        var container = $(".word_block"); // 這邊放你想要排除的區塊
+        // console.log(e.target);
+        if (!container.is(e.target) && container.has(e.target).length === 0) {
+            container.empty();
+            container.hide();
+        }
+    });
+    //播放發音
+    function play(myObj, sound) {
+        $(myObj).addClass("active");
+        var audio = document.getElementById("audio");
+        audio.volume = 0.3;
+        audio.setAttribute('src', sound);
+        audio.play();
+        audio.addEventListener("ended", function() {
+            $(myObj).removeClass("active");
+        });
+    }
+
+
+    function video_speed() {
+        var slider = document.getElementById('myRange');
+        var output = document.getElementById("speed_value");
+        var video = document.querySelector("video")
+        output.innerHTML = slider.value / 10;
+        slider.oninput = function() {
+            output.innerHTML = slider.value / 10;
+            video.playbackRate = slider.value / 10;
+        }
+
+    }
+
+    function re_cue() {
+        videoElement.currentTime = startTime + 0.0001;
+    }
+
+    function control_cue(query) {
+        switch (query) {
+            case 'pre':
+                if (KRtrack.activeCues[0] != null) {
+                    --id;
+                    if (id < 0) id = 0;
+                }
+                // $('#KR').text(KRtrack.cues[id].text);
+                // $('#TW').text(TWtrack.cues[id].text);
+                // console.log(id);
+                // for(int i=0;i<textTrackList.length;++i){
+                //     if(textTrackList[i].cues[id]){
+                //         videoElement.currentTime=KRtrack.cues[id].startTime;
+                //         startTime=KRtrack.cues[id].startTime;
+                //         break;
+                //     }
+                // }
+                videoElement.currentTime = KRtrack.cues[id].startTime - 0.001;
+                startTime = KRtrack.cues[id].startTime;
+                break;
+            case 're':
+                startTime = KRtrack.activeCues[0].startTime;
+                if ($('#re_cue').hasClass("btn_off")) {
+                    if (KRtrack.activeCues[0] == null) return;
+                    $('#re_cue').removeClass("btn_off");
+                    $('#re_cue').addClass("btn_on");
+                    KRtrack.addEventListener('cuechange', re_cue);
+                    $('#text').css('border', '5px solid black');
+                } else {
+                    $('#re_cue').removeClass("btn_on");
+                    $('#re_cue').addClass("btn_off");
+                    KRtrack.removeEventListener('cuechange', re_cue);
+                    $('#text').css('border', 'none');
+
+                }
+                break;
+            case 'next':
+                ++id;
+                // console.log(id);
+                videoElement.currentTime = KRtrack.cues[id].startTime + 0.001;
+                startTime = KRtrack.cues[id].startTime;
+                break;
+        }
+    }
+
+    function close_wb() {
+        console.log('ccc');
+        $('.word_block').css('display', 'none');
+        // $('.dialog_bg').css('display','none');
+    }
+
+    function close_fav() {
+        $('.dialog').css('display', 'none');
+        $('.dialog_bg').css('display', 'none');
+    }
+</script>
+<style type="text/css">
+    #video,
+    video {
+        width: 800px;
+    }
+    
+    .card {
+        display: flex;
+        width: fit-content;
+        /* height: 1000px; */
+    }
+    
+    #video {
+        /* margin: 0 auto; */
+        width: 800px;
+        position: relative;
+    }
+    
+    #text {
+        min-height: 100px;
+        text-align: center;
+    }
+    
+    #video p {
+        padding: 0px;
+        max-width: 800px;
+        font-size: 24px;
+    }
+    
+    #KR {
+        white-space: pre-line;
+    }
+    
+    .video_volumeHint {
+        display: none;
+        position: absolute;
+        top: 30%;
+        left: 50%;
+        z-index: 30;
+        width: 100px;
+        height: 32px;
+        line-height: 32px;
+        padding: 9px 11px 9px 7px;
+        font-size: 20px;
+        margin-left: -50px;
+        margin-top: -25px;
+        border-radius: 4px;
+        background: hsla(0, 0%, 100%, .8);
+        color: #000;
+        text-align: center;
+        padding: 10px;
+    }
+    
+    #volumeHint_icon {
+        /*   background-color: red; */
+        height: 30px;
+        width: 30px;
+        margin-left: 5px;
+        margin-right: 10px;
+        background-image: url('/static/img/volume.png');
+        background-size: 30px;
+    }
+    
+    #volumeHint_text {
+        text-align: vertical;
+    }
+    
+    #setting_icon {
+        position: fixed;
+        bottom: 5px;
+        left: 5px;
+        width: 30px;
+        height: 30px;
+        background-image: url(https://www.flaticon.com/svg/static/icons/svg/3524/3524623.svg);
+        background-size: 30px;
+        cursor: pointer;
+    }
+    
+    #msg_block {
+        position: fixed;
+        right: 0;
+        bottom: 0;
+        background-color: black;
+        color: white;
+        padding: 10px;
+        border-radius: 5px;
+        letter-spacing: 2px;
+        font-size: 20px;
+        transform: scaleY(0);
+        transition: transform 0.3s;
+    }
+    
+    .subtitle {
+        border-bottom: 1px solid gray;
+        padding: 5px;
+        /* cursor: pointer; */
+    }
+</style>
+
+<body onload="delay_load();">
+    <div id="header">
+        <div class="navigation">
+            <ul>
+                <li>
+                    <a href="/home">
+                        <span>收藏</span>
+                    </a>
+                </li>
+                <li>
+                    <span class="title">{{data['subject']}}</span>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <div class="searchBox">
+        <form class="_searchForm" action="/search/all" method="get">
+            <input type="text" id="search_text" name="query" class="search_txt">
+            <input type="submit" id="btn_search2" class="btn_search">
+        </form>
+    </div>
+    <div id="video_block">
+        <div class="card">
+            <div id="block1">
+                <div id="video">
+                    <!-- <video controls controlslist="nodownload">
+                        <track onload="load_video_subtitle(0)" default kind="subtitles" src="{{data['ko_KR']}}" label="KR">
+                        <track onload="load_video_subtitle(1)" default kind="subtitles" src="{{data['zh_TW']}}" label="TW">
+                        <track default kind="subtitles" src="{{data['en_US']}}" label="US">
+                        <source src="{{data['video_url']}}" type="video/mp4">
+                            Your browser does not support the video tag.
+                    </video> -->
+                    <div id="text">
+                        <p id="KR" onmouseup="getSelectTxt()"></p>
+                        <p id="TW"></p>
+                        <p id="EN"></p>
+                    </div>
+                    <div id="setting_block">
+                        <button disabled id="TWbtn" class="btn_off" onclick="subtitle_setting('TW')">中</button>
+                        <button disabled id="KRbtn" class="btn_off" onclick="subtitle_setting('KR')">韓</button>
+                        <button id="pre_cue" class="btn_off" onclick="control_cue('pre')">←</button>
+                        <button id="re_cue" class="btn_off" onclick="control_cue('re')">重複此句</button>
+                        <button id="next_cue" class="btn_off" onclick="control_cue('next')">→</button>
+                        <button id="speed_btn">速度</button>
+                        <span id="speed">
+                            <span class="min">0</span>
+                        <input type="range" min="1" max="20" value="10" class="slider" id="myRange">
+                        <span class="max">2</span>
+                        <span id="speed_value">0.8</span>
+                        </span>
+                        <button id="favorite">
+                        <img src='/static/img/unstar.png'>
+                        收藏
+                        </button>
+                    </div>
+                    <div class="video_volumeHint">
+                        <div id="volumeHint_icon"></div>
+                        <span id="volumeHint_text"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <audio id="audio"></audio>
+
+    <div class="word_block">
+    </div>
+
+    <div id="msg_block">
+    </div>
+
+    <!-- <div id="setting_icon"></div> -->
+
+    <div class="dialog_bg"></div>
+    <div id="del_fav" class="dialog" onclick="close_fav()">
+        <p>確定要取消收藏嗎?</p>
+        <span class="close fat"></span>
+        <div id="del_fav_btn">確定</div>
+    </div>
+</body>
+
+</html>

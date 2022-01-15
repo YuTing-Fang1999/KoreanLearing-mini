@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>韓語學習</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="/static/css/header.css">
+</head>
+<script language="javascript">
+    function load_video_list() {
+        $.ajax({
+            url: "/load_video_list",
+            type: "POST",
+            success: function(res) {
+                video_list = res["video_list"]
+                console.log(video_list)
+                for (var i = 0; i < video_list.length; ++i) {
+                    // console.log(video_list[i])
+                    appendVideo(video_list[i])
+                }
+            },
+            error: function(res) {
+                console.log(res)
+            }
+        })
+    }
+
+    function appendVideo(v) {
+        // v=["V_199229","[BTS] 꿈이 현실인지 현실이 꿈인지 <햄셉션> 대개봉‼ (Jungkook&Jimin making Gimbap)"]
+        var html =
+            `<div class="video_block">
+                <a href="video/${v[0]}">
+                    <img class="cover" src="${v[2]}"/>
+                    <p class="subject">${v[1]}</p>
+                </a>
+            </div>
+            `
+            // <input id="${v[0]}" type="button" onclick="delete_btn(this.id)" value="刪除">
+
+
+
+        $("#video_section").append(html); // 追加新元素
+    }
+
+    function delete_btn(V_id) {
+        // alert(V_id);
+        $.ajax({
+            url: '/delete_video_block/' + V_id,
+            success: function(res) {
+                // console.log(res)
+                window.location.reload();
+            },
+            error: function(res) {
+                alert(res)
+            }
+        })
+    }
+</script>
+<style type="text/css">
+    body {
+        background-color: white;
+    }
+    
+    .card {
+        width: 1200px;
+    }
+    
+    #video_section {
+        display: flex;
+        padding: 15px;
+        flex-wrap: wrap;
+    }
+    
+    .video_block,
+    .cover,
+    .subject {
+        border: solid 1px #888888;
+    }
+    
+    .video_block {
+        margin: 5px;
+        width: fit-content;
+        height: 200px;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .video_block a {
+        text-decoration: none;
+        color: black;
+        letter-spacing: 2px;
+        font-size: 15px;
+    }
+    
+    .cover,
+    .subject {
+        border: 0px;
+        margin: 5px;
+        width: 165px;
+    }
+    
+    input[type=button] {
+        width: 165px;
+        margin: 5px;
+        height: 35px;
+        position: absolute;
+        bottom: 0px;
+        background-color: red;
+        letter-spacing: 5px;
+        border-radius: 5px;
+        font-size: 20px;
+        border: none;
+        cursor: pointer;
+    }
+    
+    input[type=button]:hover {
+        background-color: #B50800;
+        color: white;
+    }
+</style>
+
+<body onload="load_video_list()">
+    <div id="header">
+        <div class="navigation">
+            <ul>
+                <li>
+                    <a href="/home" class="on">
+                        <span>收藏</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/channel/FE619">
+                        <span>BTS</span>
+                    </a>
+                </li>
+                <!-- <li>
+                    <a href="/search/all?query=run+bts">
+                        <span>RUN BTS</span>
+                    </a>
+                </li> -->
+            </ul>
+        </div>
+    </div>
+    <div class="searchBox">
+        <form class="_searchForm" action="/search/all" method="get">
+            <input type="text" id="search_text" name="query" class="search_txt">
+            <input type="submit" id="btn_search2" class="btn_search">
+        </form>
+    </div>
+    <div id="download">
+        <div class="card">
+            <div class="title">
+                <p>我的影片</p>
+                <!-- <button onclick="appendVideo()">追加block</button> -->
+                <!-- <input id="delete" type="submit" value="刪除"> -->
+            </div>
+            <div id="video_section">
+                <!-- <div class="video_block">
+                    <a href="">
+                        <img class="cover" src=""/>
+                        <p class="subject">標題</p>
+                    </a>
+                    <input id="" type="button" onclick="delete_btn(this.id)" value="刪除">
+                </div> -->
+            </div>
+
+
+        </div>
+
+    </div>
+</body>
+
+</html>
