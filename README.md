@@ -1,6 +1,7 @@
 # KoreanLearing-mini
 作品架在 https://flask-koreanlerning.herokuapp.com  
 因為是免費資源，所以剛開始連會花一點時間重啟(約10秒)  
+Because it is a free resource, it will take about 10 seconds to init at the beginning    
 
 ## 此作品是基於我個人興趣做的，所有版權皆不屬於我，請勿拿來用作商業用途
 
