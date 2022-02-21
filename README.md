@@ -3,7 +3,7 @@
 因為是免費資源，所以剛開始連會花一點時間重啟(約10秒)  
 Because it is a free resource, it will take about 10 seconds to init at the beginning    
 
-## 此作品是基於我個人興趣做的，所有版權皆不屬於我，請勿拿來用作商業用途
+## 此作品是基於我個人興趣做的，所有版權皆不屬於我，請勿拿來用作任何用途
 
 ## 使用到的技術
 此作品中運用到了前端、後端、資料庫、UI設計、系統架構設計、api設計、爬蟲、封包分析
